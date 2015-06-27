@@ -24,25 +24,26 @@ int main(int argc, char **argv) {
 		exit(1);
 	}
 
-	/* use system call to make terminal send all keystrokes directly to stdin */
-	system ("/bin/stty raw");
-
 	// Create a basic UDP socket
 	sockfd = socket(AF_INET, SOCK_DGRAM, 0);
 	// Initialize the memory
 	memset(&servaddr, sizeof(servaddr), 0);
 	// We want to use the Internet Address Family
 	servaddr.sin_family = AF_INET;
-	// Here we set the IP address
-	// Note: we call inet_addr to convert the string representation into an integer representation
+	// Set Ip addr.
 	servaddr.sin_addr.s_addr = inet_addr(argv[1]);
-	// Do something similar with the port - but we also need it in Big Endian format
+	// Set default port to 8000
 	servaddr.sin_port = htons(8000);
 	
+	// using stty to control input without pressing enter
+	// use system call to make terminal send all keystrokes directly to stdin
+	system ("/bin/stty raw");
+
 	while((c=getchar())!= '.') {
-		/* type a period to break out of the loop, since CTRL-D won't work raw */
-		putchar(c);
-		// send out the command
+		// change the character to lower case
+		if(c>='A' && c<='Z')
+			c+=32;
+		// send out the command only when the character is control character
 		sendto(sockfd, &c, 1, 0, (struct sockaddr *) &servaddr, sizeof(servaddr));
 	}
 
@@ -50,3 +51,4 @@ int main(int argc, char **argv) {
 	system ("/bin/stty cooked");
 
 }
+
